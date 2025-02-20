@@ -47,7 +47,7 @@ def login(): # get cookie from env
 def reactivate(): # main function
     roomids=os.environ['roomids']
     if roomids == "all":
-        roomids=get_roomids_for_medal()
+        roomids=get_roomids_form_medal_list()
     else:    
         roomids=roomids.split(",")
     try:
@@ -63,7 +63,7 @@ def reactivate(): # main function
     except:
         raise
 
-def get_roomids_for_medal(): # get roomids from medal list(but user class doesn't work)
+def get_roomids_form_medal_list(): # get roomids from medal list(but user class doesn't work)
     user_self=sync((user.get_self_info(credential=c)))
     time.sleep(1+random.random())
     medal_list=sync(user.User(user_self['mid'],credential=c).get_user_medal())
@@ -90,10 +90,7 @@ def get_roomids_for_medal(): # get roomids from medal list(but user class doesn'
                 roomids.append(roomid)
             else:
                 logger.warning('Unknown link: '+i['link'])
-        except ResponseCodeException as e:
-            logger.warning(f"获取失败，原因：{e}，跳过")
-            continue
-        except ApiException as e:
+        except (ResponseCodeException,ApiException) as e:
             logger.warning(f"获取失败，原因：{e}，跳过")
             continue
         logger.info(f"获取成功")
