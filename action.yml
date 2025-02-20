@@ -1,0 +1,40 @@
+name: medal-reactivator
+branding:
+  icon: "cast"
+  color: "blue"
+description: Reactivate your bilibili medal
+inputs:
+  cookies:
+    description: Your bilibili account cookies
+    required: true
+  roomids:
+    description: list of liveroom's roomids
+    required: true
+runs:
+  using: composite
+  steps:
+  - name: Prepareing...
+    run: echo "::group::Prepareing..."
+    shell: bash
+  - name: setup python
+    uses: actions/setup-python@v5
+    with:
+      python-version: 3.9
+      cache: 'pip'
+      cache-dependency-path: '**/requirements.txt'
+  - name: Install requirement
+    run: pip install -r $GITHUB_ACTION_PATH/requirements.txt
+    shell: bash
+  - run: echo "::endgroup::"
+    shell: bash
+  - name: Update gist
+    run: python $GITHUB_ACTION_PATH/reactivate.py
+    env:
+      GH_TOKEN: ${{ inputs.ghtoken }}
+      GIST_ID: ${{ inputs.gistid }}
+      BILI_SESSDATA: ${{ inputs.sessdata }}
+      BILI_UID: ${{ inputs.biliuid }}
+    shell: bash
+  - name: output logs
+    run: cat log.log >>$GITHUB_STEP_SUMMARY
+    shell: bash
