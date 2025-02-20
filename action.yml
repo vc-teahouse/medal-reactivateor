@@ -30,10 +30,8 @@ runs:
   - name: Update gist
     run: python $GITHUB_ACTION_PATH/reactivate.py
     env:
-      GH_TOKEN: ${{ inputs.ghtoken }}
-      GIST_ID: ${{ inputs.gistid }}
-      BILI_SESSDATA: ${{ inputs.sessdata }}
-      BILI_UID: ${{ inputs.biliuid }}
+      cookies: ${{ inputs.cookies }}
+      roomids: ${{ inputs.roomids }}
     shell: bash
   - name: output logs
     run: cat log.log >>$GITHUB_STEP_SUMMARY
