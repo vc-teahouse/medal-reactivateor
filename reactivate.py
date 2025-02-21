@@ -14,7 +14,6 @@ from bilibili_api import Credential,Danmaku,user
 from bilibili_api import sync,parse_link,select_client
 from bilibili_api.live import LiveRoom
 from bilibili_api.exceptions import ResponseCodeException,ApiException
-from bilibili_api.utils import network
 from danmu_dict import danmu_list
 
 select_client('aiohttp')
@@ -22,14 +21,17 @@ select_client('aiohttp')
 c=Credential()
 with_qrcode=False
 
-network.HEADERS['User-Agent']='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
-
 print(sys.argv)
 if len(sys.argv) >= 2:
-    if "dev" in sys.argv :
+    if "-with-env" in sys.argv :
         load_dotenv(dotenv_path="./.env")
     if "-with-qrcode" in sys.argv:
         with_qrcode=True
+    elif "-cookies" in sys.argv:
+        with open(file=sys.argv[sys.argv.index("-cookies")+1],mode="r",encoding="utf-8",errors="ignore") as f:
+            os.environ['cookies']=f.read()
+    if "-roomids" in sys.argv:
+        os.environ['roomids']=sys.argv[sys.argv.index("-roomids")+1]
 
 def login(): # get cookie from env
     if with_qrcode:
