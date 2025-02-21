@@ -1,29 +1,42 @@
 """
 通过cookie登录bilibili，发送弹幕，用于保持粉丝牌激活状态
-    key:crnmsmshsa
+    key:crnmsmshsa (一句名场面而已)
 """
 
 import os
 import sys
 import json
-import time
 import random
+from time import sleep,perf_counter
 from loguru import logger
 from dotenv import load_dotenv
-from bilibili_api import Credential,sync,Danmaku,user,parse_link
+from bilibili_api import Credential,Danmaku,user
+from bilibili_api import sync,parse_link,select_client
 from bilibili_api.live import LiveRoom
 from bilibili_api.exceptions import ResponseCodeException,ApiException
+from bilibili_api.utils import network
 from danmu_dict import danmu_list
 
+select_client('aiohttp')
+
 c=Credential()
+with_qrcode=False
+
+network.HEADERS['User-Agent']='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
 
 print(sys.argv)
-if len(sys.argv) >= 1:
-    if sys.argv[1] == "dev":
+if len(sys.argv) >= 2:
+    if "dev" in sys.argv :
         load_dotenv(dotenv_path="./.env")
-
+    if "-with-qrcode" in sys.argv:
+        with_qrcode=True
 
 def login(): # get cookie from env
+    if with_qrcode:
+        logger.info("等待用户扫码...")
+        from blapi_port.login_port import login_with_qrcode
+        c=login_with_qrcode()
+        return c
     logger.info("正在通过env获取cookie")
     try:
         cookie=os.environ['cookies']
@@ -51,38 +64,37 @@ def reactivate(): # main function
     else:    
         roomids=roomids.split(",")
     try:
+        logger.info(f"直播间列表:{roomids}")
         for live_roomid in roomids:
-            logger.info(f"切换房间：{live_roomid}")
+            logger.debug(f"切换房间：{live_roomid}")
             live_room = LiveRoom(room_display_id=live_roomid,credential=c)
             for i in range(1,11): # 发送10次弹幕
                 sleep_time=5+random.random()
                 text=random.choice(danmu_list)
-                logger.info(f"第{i}次发送弹幕，内容为：{text},等待{sleep_time:.2f}s")
+                logger.debug(f"第{i}次发送弹幕，内容为：{text},等待{sleep_time:.2f}s")
                 sync(live_room.send_danmaku(danmaku=Danmaku(text=text)))
-                time.sleep(sleep_time)
+                sleep(sleep_time)
     except:
         raise
 
 def get_roomids_form_medal_list(): # get roomids from medal list(but user class doesn't work)
     user_self=sync((user.get_self_info(credential=c)))
-    time.sleep(1+random.random())
     medal_list=sync(user.User(user_self['mid'],credential=c).get_user_medal())
     logger.info('Get medal list successfully!')
     medal_list=medal_list['list']
     roomids=[]
     for i in medal_list:
-        logger.info(f"获取当前牌子（{i['medal_info']['medal_name']}）的对应直播间号，目前已成功获取的直播间号列表为：{roomids}")
+        logger.info(f"获取当前牌子（{i['medal_info']['medal_name']}）的对应直播间号")
+        logger.info(f"目前已成功获取的直播间号列表为：{roomids}")
         try:
             if i['link'].startswith('https://space.bilibili.com/'): # idk why it doesn't work
-                logger.info(f"获取到个人空间链接，尝试获取直播间号...")
+                logger.debug(f"获取到个人空间链接，尝试获取直播间号...")
                 obj=sync(parse_link(url=i['link'],credential=c))[0]
-                time.sleep(3+random.random())
-                print(sync(obj.get_access_id()))
-                info=sync(obj.get_user_info())
-                print(info['live_room'])
+                # 下面的代码出现了如[bilibili#892](https://github.com/nemo2011/bilibili-api/issues/892)所述的问题
+                info=sync(obj.get_user_info()) # 有时候会直接raise ApiException,也有第一个后才raise的
                 roomids.append(info['live_room']['roomid'])
             elif i['link'].startswith('https://live.bilibili.com'): # it works when is streaming
-                logger.info(f"获取到直播间链接，尝试获取直播间号...")
+                logger.debug(f"获取到直播间链接，尝试获取直播间号...")
                 roomid=str()
                 roomid=i['link'].replace('https://live.bilibili.com/','')
                 index=roomid.find('?')
@@ -92,16 +104,17 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
                 logger.warning('Unknown link: '+i['link'])
         except (ResponseCodeException,ApiException) as e:
             logger.warning(f"获取失败，原因：{e}，跳过")
+            sleep(3+random.random())
             continue
         logger.info(f"获取成功")
-        time.sleep(3+random.random())
+        sleep(3+random.random())
     return roomids
     
     
 
 if __name__ == "__main__":
-    timer=time.perf_counter()
+    timer=perf_counter()
     c = login()
     logger.info("登录成功")
     reactivate()
-    logger.info("已完成,耗时{:.2f}s".format(time.perf_counter()-timer))
+    logger.info("已完成,耗时{:.2f}s".format(perf_counter()-timer))
