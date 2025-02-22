@@ -16,16 +16,23 @@ from bilibili_api.live import LiveRoom
 from bilibili_api.exceptions import ResponseCodeException,ApiException
 from danmu_dict import danmu_list
 
+level="WARNING"
 select_client('aiohttp')
+logger.add("reactivate.log",rotation="3 day",encoding="utf-8",backtrace=True,diagnose=True,level=level)
 
+load_dotenv(dotenv_path="./.env")
 c=Credential()
 ignore_rooms=[]
+
+try:
+    ignore_rooms=os.environ['ignore'].split(",")
+except KeyError:
+    pass
+
 with_qrcode=False
 
 print(sys.argv)
 if len(sys.argv) >= 2:
-    if "-with-env" in sys.argv :
-        load_dotenv(dotenv_path="./.env")
     if "-with-qrcode" in sys.argv:
         with_qrcode=True
     elif "-cookies" in sys.argv:
@@ -83,7 +90,6 @@ def reactivate(): # main function
     global ignore_rooms
     roomids=os.environ['roomids']
     if roomids == "all":
-        ignore_rooms=os.environ['ignore'].split(",")
         roomids=get_roomids_form_medal_list()
     else:    
         roomids=roomids.split(",")
