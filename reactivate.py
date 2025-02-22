@@ -122,13 +122,12 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
         logger.info(f"获取当前牌子（{i['medal_info']['medal_name']}）的对应直播间号")
         logger.info(f"目前已成功获取的直播间号列表为：{roomids}")
         try:
-            if i['link'].startswith('https://space.bilibili.com/'): # idk why it doesn't work
+            if i['link'].startswith('https://space.bilibili.com/'): # 通常情况下是这个链接
                 logger.debug(f"获取到个人空间链接，尝试获取直播间号...")
                 obj=sync(parse_link(url=i['link'],credential=c))[0]
-                # 下面的代码出现了如[bilibili-api#892](https://github.com/nemo2011/bilibili-api/issues/892)所述的问题
-                info=sync(obj.get_live_info()) # 目前是会第一个后才raise的，偶尔会正常工作（风控？）
+                info=sync(obj.get_live_info()) # (上游已修复)(https://github.com/nemo2011/bilibili-api/issues/892)
                 roomids.append(info['live_room']['roomid'])
-            elif i['link'].startswith('https://live.bilibili.com'): # it works when is streaming
+            elif i['link'].startswith('https://live.bilibili.com'): # 这个链接在直播状态下才会有
                 logger.debug(f"获取到直播间链接，直接从链接中提取直播间号...")
                 roomid=i['link'].replace('https://live.bilibili.com/','')
                 index=roomid.find('?')
@@ -136,8 +135,12 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
                 roomids.append(roomid)
             else:
                 logger.warning('Unknown link: '+i['link'])
-        except (ResponseCodeException,ApiException) as e:
-            logger.error(f"获取失败，原因：{e}，跳过")
+        except ResponseCodeException as e:
+            logger.warning(f"获取失败，原因：{e}，跳过")
+            failed_dict[i['medal_info']['medal_name']]=e
+            continue
+        except ApiException as e:
+            logger.critical(f"获取失败，原因：{e}，跳过")
             failed_dict[i['medal_info']['medal_name']]=e
             continue
         logger.debug(f"获取成功,直播间号：{roomids[-1]}")
