@@ -47,6 +47,7 @@ def login(): # get cookie from env
             sessdata=cookie.get('SESSDATA'),
             bili_jct=cookie.get('bili_jct'),
             buvid3=cookie.get('buvid3'),
+            buvid4=cookie.get('buvid4'),
             dedeuserid=cookie.get('DedeUserID'),
             ac_time_value=cookie.get('ac_time_value')
             )
@@ -79,13 +80,13 @@ def reactivate(): # main function
                 sleep(sleep_time)
     except:
         raise
-
 def get_roomids_form_medal_list(): # get roomids from medal list(but user class doesn't work)
     user_self=sync((user.get_self_info(credential=c)))
     medal_list=sync(user.User(user_self['mid'],credential=c).get_user_medal())
     logger.info('Get medal list successfully!')
     medal_list=medal_list['list']
     roomids=[]
+    failed_dict={}
     for i in medal_list:
         logger.info(f"获取当前牌子（{i['medal_info']['medal_name']}）的对应直播间号")
         logger.info(f"目前已成功获取的直播间号列表为：{roomids}")
@@ -94,7 +95,7 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
                 logger.debug(f"获取到个人空间链接，尝试获取直播间号...")
                 obj=sync(parse_link(url=i['link'],credential=c))[0]
                 # 下面的代码出现了如[bilibili-api#892](https://github.com/nemo2011/bilibili-api/issues/892)所述的问题
-                info=sync(obj.get_user_info()) # 有时候会直接raise ApiException,也有第一个后才raise的
+                info=sync(obj.get_live_info()) # 有时候会直接raise ApiException,也有第一个后才raise的
                 roomids.append(info['live_room']['roomid'])
             elif i['link'].startswith('https://live.bilibili.com'): # it works when is streaming
                 logger.debug(f"获取到直播间链接，直接从链接中提取直播间号...")
@@ -106,9 +107,11 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
             else:
                 logger.warning('Unknown link: '+i['link'])
         except (ResponseCodeException,ApiException) as e:
-            logger.warning(f"获取失败，原因：{e}，跳过")
+            logger.error(f"获取失败，原因：{e}，跳过")
+            failed_dict[i['medal_info']['medal_name']]=e
             continue
         logger.debug(f"获取成功,直播间号：{roomids[-1]}")
+    logger.warning(f"{failed_dict}")
     return roomids
     
     
