@@ -14,6 +14,10 @@ from bilibili_api import Credential,Danmaku,user
 from bilibili_api import sync,parse_link,select_client
 from bilibili_api.live import LiveRoom
 from bilibili_api.exceptions import ResponseCodeException,ApiException
+
+if not os.getcwd() in sys.path:
+    sys.path.append(os.getcwd())
+
 from danmu_dict import danmu_list
 
 level="WARNING"
