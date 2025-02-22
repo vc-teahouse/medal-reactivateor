@@ -82,7 +82,7 @@ def get_text():
     text=random.choice(danmu_list)
     try:
         if text is sended_danmu[-1] or text is None:
-            get_text()
+            return get_text()
         else:
             sended_danmu.append(text)
             return text
