@@ -19,6 +19,7 @@ from danmu_dict import danmu_list
 select_client('aiohttp')
 
 c=Credential()
+ignore_rooms=[]
 with_qrcode=False
 
 print(sys.argv)
@@ -32,6 +33,9 @@ if len(sys.argv) >= 2:
             os.environ['cookies']=f.read()
     if "-roomids" in sys.argv:
         os.environ['roomids']=sys.argv[sys.argv.index("-roomids")+1]
+    if "-ignore" in sys.argv and os.environ['roomids'] == "all":
+        ignore_rooms=sys.argv[sys.argv.index("-ignore")+1].split(",")
+        
 
 def login(): # get cookie from env
     if with_qrcode:
@@ -61,8 +65,10 @@ def login(): # get cookie from env
     return c
 
 def reactivate(): # main function
+    global ignore_rooms
     roomids=os.environ['roomids']
     if roomids == "all":
+        ignore_rooms=os.environ['ignore'].split(",")
         roomids=get_roomids_form_medal_list()
     else:    
         roomids=roomids.split(",")
@@ -71,6 +77,8 @@ def reactivate(): # main function
         sleep(5)
         for live_roomid in roomids:
             logger.debug(f"切换房间：{live_roomid}")
+            if live_roomid in ignore_rooms:
+                continue
             live_room = LiveRoom(room_display_id=live_roomid,credential=c)
             for i in range(1,11): # 发送10次弹幕
                 sleep_time=5+random.random()
@@ -80,6 +88,7 @@ def reactivate(): # main function
                 sleep(sleep_time)
     except:
         raise
+
 def get_roomids_form_medal_list(): # get roomids from medal list(but user class doesn't work)
     user_self=sync((user.get_self_info(credential=c)))
     medal_list=sync(user.User(user_self['mid'],credential=c).get_user_medal())
@@ -101,8 +110,7 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
                 logger.debug(f"获取到直播间链接，直接从链接中提取直播间号...")
                 roomid=i['link'].replace('https://live.bilibili.com/','')
                 index=roomid.find('?')
-                roomid=roomid[:index]
-                roomid=int(roomid)
+                roomid=int(roomid[:index])
                 roomids.append(roomid)
             else:
                 logger.warning('Unknown link: '+i['link'])
