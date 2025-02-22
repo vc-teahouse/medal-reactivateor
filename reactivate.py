@@ -64,6 +64,17 @@ def login(): # get cookie from env
         raise
     return c
 
+sended_danmu=[]
+
+def get_text():
+    global sended_danmu
+    text=random.choice(danmu_list)
+    if text is sended_danmu[-1]:
+        get_text()
+    else:
+        sended_danmu.append(text)
+        return text
+
 def reactivate(): # main function
     global ignore_rooms
     roomids=os.environ['roomids']
@@ -82,7 +93,7 @@ def reactivate(): # main function
             live_room = LiveRoom(room_display_id=live_roomid,credential=c)
             for i in range(1,11): # 发送10次弹幕
                 sleep_time=5+random.random()
-                text=random.choice(danmu_list)
+                text=get_text()
                 logger.debug(f"第{i}次发送弹幕，内容为：{text},等待 {sleep_time:.2f}s")
                 sync(live_room.send_danmaku(danmaku=Danmaku(text=text)))
                 sleep(sleep_time)
