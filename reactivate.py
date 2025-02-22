@@ -95,7 +95,7 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
                 logger.debug(f"获取到个人空间链接，尝试获取直播间号...")
                 obj=sync(parse_link(url=i['link'],credential=c))[0]
                 # 下面的代码出现了如[bilibili-api#892](https://github.com/nemo2011/bilibili-api/issues/892)所述的问题
-                info=sync(obj.get_live_info()) # 有时候会直接raise ApiException,也有第一个后才raise的
+                info=sync(obj.get_live_info()) # 目前是会第一个后才raise的，偶尔会正常工作（风控？）
                 roomids.append(info['live_room']['roomid'])
             elif i['link'].startswith('https://live.bilibili.com'): # it works when is streaming
                 logger.debug(f"获取到直播间链接，直接从链接中提取直播间号...")
