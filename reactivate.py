@@ -69,9 +69,13 @@ sended_danmu=[]
 def get_text():
     global sended_danmu
     text=random.choice(danmu_list)
-    if text is sended_danmu[-1]:
-        get_text()
-    else:
+    try:
+        if text is sended_danmu[-1] or text is None:
+            get_text()
+        else:
+            sended_danmu.append(text)
+            return text
+    except IndexError:
         sended_danmu.append(text)
         return text
 
