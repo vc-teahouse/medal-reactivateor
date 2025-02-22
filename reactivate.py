@@ -97,6 +97,7 @@ def reactivate(): # main function
                 logger.debug(f"第{i}次发送弹幕，内容为：{text},等待 {sleep_time:.2f}s")
                 sync(live_room.send_danmaku(danmaku=Danmaku(text=text)))
                 sleep(sleep_time)
+            sended_danmu.clear()
     except:
         raise
 
