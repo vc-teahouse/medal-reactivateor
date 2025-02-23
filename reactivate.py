@@ -119,6 +119,8 @@ def reactivate(): # main function
                 sync(live_room.send_danmaku(danmaku=Danmaku(text=text)))
                 if sync(live_room.get_user_info_in_room())['medal']['lookup']['is_lighted']:
                     logger.info(f"直播间{live_roomid}的牌子 激活成功")
+                    logger.info(f"等待{sleep_time:.2f}秒后继续发送")
+                    sleep(sleep_time)
                     break
                 logger.info(f"等待{sleep_time:.2f}秒后继续发送")
                 sleep(sleep_time)
