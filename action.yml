@@ -14,7 +14,7 @@ inputs:
   ignore:
     description: list of liveroom's roomids that you want to ignore
     required: false
-    default: ""
+    default: "0"
 runs:
   using: composite
   steps:
