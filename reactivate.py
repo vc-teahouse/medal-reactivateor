@@ -26,11 +26,11 @@ logger.add("reactivate.log",rotation="3 day",encoding="utf-8",backtrace=True,dia
 
 load_dotenv(dotenv_path="./.env")
 c=Credential()
-ignore_rooms=[]
+ignore_rooms=list[int]
 
 try:
-    ignore_rooms=os.environ['ignore'].split(",")
-except KeyError:
+    ignore_rooms=[int(i) for i in os.environ['ignore'].split(",")]
+except (KeyError,ValueError):
     pass
 
 with_qrcode=False
@@ -45,7 +45,8 @@ if len(sys.argv) >= 2:
     if "-roomids" in sys.argv:
         os.environ['roomids']=sys.argv[sys.argv.index("-roomids")+1]
     if "-ignore" in sys.argv and os.environ['roomids'] == "all":
-        ignore_rooms=sys.argv[sys.argv.index("-ignore")+1].split(",")
+        ignore_rooms=[int(i) for i in sys.argv[sys.argv.index("-ignore")+1].split(",")]
+        
         
 
 def login(): # get cookie from env
@@ -109,7 +110,7 @@ def reactivate(): # main function
                 logger.info(f"直播间{live_roomid}已在忽略列表，跳过")
                 continue
             elif sync(live_room.get_user_info_in_room())['medal']['lookup']['is_lighted']:
-                logger.info(f"直播间{live_roomid}的牌子处于已激活状态，跳过")
+                logger.info(f"直播间{live_roomid}的牌子已处于激活状态，跳过")
                 continue
             for i in range(1,11): # 发送10次弹幕
                 sleep_time=5+random.random()
@@ -136,7 +137,7 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
     failed_dict={}
     for i in medal_list:
         logger.debug(f"目前已成功获取的直播间号列表为：{roomids}")
-        logger.debug(f"获取当前牌子（{i['medal_info']['medal_name']}）的对应直播间号")
+        logger.info(f"获取当前牌子（{i['medal_info']['medal_name']}）的对应直播间号")
         try:
             if i['link'].startswith('https://space.bilibili.com/'): # 通常情况下是这个链接
                 logger.debug(f"获取到个人空间链接，尝试获取直播间号...")
@@ -159,7 +160,7 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
             logger.critical(f"获取失败，原因：{e}，跳过")
             failed_dict[i['medal_info']['medal_name']]=e
             continue
-        logger.debug(f"获取成功,直播间号：{roomids[-1]}")
+        logger.info(f"获取成功,直播间号：{roomids[-1]}")
     logger.warning(f"{failed_dict}")
     logger.info(f"获取直播间号完成，共{len(roomids)}个,耗时{perf_counter()-ana_timer:.2f}s")
     return roomids
