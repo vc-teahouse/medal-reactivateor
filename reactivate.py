@@ -26,7 +26,7 @@ logger.add("reactivate.log",rotation="3 day",encoding="utf-8",backtrace=True,dia
 
 load_dotenv(dotenv_path="./.env")
 c=Credential()
-ignore_rooms=list[int]
+ignore_rooms=[]
 
 try:
     ignore_rooms=[int(i) for i in os.environ['ignore'].split(",")]
