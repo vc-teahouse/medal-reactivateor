@@ -98,9 +98,13 @@ def reactivate(): # main function
         sleep(5)
         for live_roomid in roomids:
             logger.debug(f"切换房间：{live_roomid}")
-            if live_roomid in ignore_rooms:
-                continue
             live_room = LiveRoom(room_display_id=live_roomid,credential=c)
+            if live_roomid in ignore_rooms:
+                logger.info(f"已在忽略列表，跳过")
+                continue
+            elif sync(live_room.get_user_info_in_room())['medal']['lookup']['is_lighted']:
+                logger.info(f"牌子处于激活状态，跳过")
+                continue
             for i in range(1,11): # 发送10次弹幕
                 sleep_time=5+random.random()
                 text=get_text()
