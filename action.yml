@@ -8,10 +8,13 @@ inputs:
     description: Your bilibili account cookies
     required: true
   roomids:
-    description: list of liveroom's roomids
-    required: true
+    description: list of liveroom's roomids(eg. 216676,216676)
+    required: false
+    default: "all"
   ignore:
-    required: true
+    description: list of liveroom's roomids that you want to ignore
+    required: false
+    default: ""
 runs:
   using: composite
   steps:
