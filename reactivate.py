@@ -20,7 +20,7 @@ if not os.getcwd() in sys.path:
 
 from danmu_dict import danmu_list
 
-level="WARNING"
+level="INFO"
 select_client('aiohttp')
 logger.add("reactivate.log",rotation="3 day",encoding="utf-8",backtrace=True,diagnose=True,level=level)
 
@@ -53,6 +53,7 @@ def login(): # get cookie from env
         logger.info("等待用户扫码...")
         from blapi_port.login_port import login_with_qrcode
         c=login_with_qrcode()
+        logger.info("登录成功")
         return c
     logger.info("正在通过env获取cookie")
     try:
@@ -73,6 +74,7 @@ def login(): # get cookie from env
             logger.info('Cookie is still valid!')
     except:
         raise
+    logger.info("登录成功")
     return c
 
 sended_danmu=[]
@@ -97,38 +99,44 @@ def reactivate(): # main function
         roomids=get_roomids_form_medal_list()
     else:    
         roomids=roomids.split(",")
+    logger.info(f"即将在5秒后开始激活流程...\r\n直播间列表:{roomids},忽略列表:{ignore_rooms}")
+    sleep(5)
     try:
-        logger.info(f"直播间列表:{roomids}")
-        sleep(5)
         for live_roomid in roomids:
-            logger.debug(f"切换房间：{live_roomid}")
+            logger.info(f"切换直播间：{live_roomid}")
             live_room = LiveRoom(room_display_id=live_roomid,credential=c)
             if live_roomid in ignore_rooms and os.environ['roomids'] == "all":
-                logger.info(f"{live_roomid}已在忽略列表，跳过")
+                logger.info(f"直播间{live_roomid}已在忽略列表，跳过")
                 continue
             elif sync(live_room.get_user_info_in_room())['medal']['lookup']['is_lighted']:
-                logger.info(f"{live_roomid}的牌子处于已激活状态，跳过")
+                logger.info(f"直播间{live_roomid}的牌子处于已激活状态，跳过")
                 continue
             for i in range(1,11): # 发送10次弹幕
                 sleep_time=5+random.random()
                 text=get_text()
-                logger.debug(f"第{i}次发送弹幕，内容为：{text},等待 {sleep_time:.2f}s")
+                logger.info(f"第{i}次发送弹幕，内容为：{text} (剩余{10-i}次)")
                 sync(live_room.send_danmaku(danmaku=Danmaku(text=text)))
+                if sync(live_room.get_user_info_in_room())['medal']['lookup']['is_lighted']:
+                    logger.info(f"直播间{live_roomid}的牌子 激活成功")
+                    break
+                logger.info(f"等待{sleep_time:.2f}秒后继续发送")
                 sleep(sleep_time)
+            logger.info(f"直播间{live_roomid}的牌子 激活成功")
             sended_danmu.clear()
     except:
         raise
 
 def get_roomids_form_medal_list(): # get roomids from medal list(but user class doesn't work)
+    ana_timer=timer
     user_self=sync((user.get_self_info(credential=c)))
     medal_list=sync(user.User(user_self['mid'],credential=c).get_user_medal())
-    logger.info('Get medal list successfully!')
+    logger.debug('Get medal list successfully!')
     medal_list=medal_list['list']
     roomids=[]
     failed_dict={}
     for i in medal_list:
-        logger.info(f"获取当前牌子（{i['medal_info']['medal_name']}）的对应直播间号")
-        logger.info(f"目前已成功获取的直播间号列表为：{roomids}")
+        logger.debug(f"目前已成功获取的直播间号列表为：{roomids}")
+        logger.debug(f"获取当前牌子（{i['medal_info']['medal_name']}）的对应直播间号")
         try:
             if i['link'].startswith('https://space.bilibili.com/'): # 通常情况下是这个链接
                 logger.debug(f"获取到个人空间链接，尝试获取直播间号...")
@@ -153,12 +161,11 @@ def get_roomids_form_medal_list(): # get roomids from medal list(but user class 
             continue
         logger.debug(f"获取成功,直播间号：{roomids[-1]}")
     logger.warning(f"{failed_dict}")
+    logger.info(f"获取直播间号完成，共{len(roomids)}个,耗时{perf_counter()-ana_timer:.2f}s")
     return roomids
-    
     
 if __name__ == "__main__":
     timer=perf_counter()
     c = login()
-    logger.info("登录成功")
     reactivate()
     logger.info("已完成,耗时{:.2f}s".format(perf_counter()-timer))
