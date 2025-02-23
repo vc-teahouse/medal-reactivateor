@@ -18,8 +18,8 @@ inputs:
 runs:
   using: composite
   steps:
-  - name: Prepareing...
-    run: echo "::group::Prepareing..."
+  - name: Running...
+    run: echo "::group::Running..."
     shell: bash
   - name: setup python
     uses: actions/setup-python@v5
@@ -29,8 +29,6 @@ runs:
   - name: Install requirement
     run: pip install -r $GITHUB_ACTION_PATH/requirements.txt
     shell: bash
-  - run: echo "::endgroup::"
-    shell: bash
   - name: Update gist
     run: python $GITHUB_ACTION_PATH/reactivate.py
     env:
@@ -38,6 +36,5 @@ runs:
       roomids: ${{ inputs.roomids }}
       ignore: ${{ inputs.ignore }}
     shell: bash
-  - name: output logs
-    run: cat log.log >>$GITHUB_STEP_SUMMARY
+  - run: echo "::endgroup::"
     shell: bash
