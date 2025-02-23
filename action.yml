@@ -10,6 +10,8 @@ inputs:
   roomids:
     description: list of liveroom's roomids
     required: true
+  ignore:
+    required: true
 runs:
   using: composite
   steps:
@@ -32,6 +34,7 @@ runs:
     env:
       cookies: ${{ inputs.cookies }}
       roomids: ${{ inputs.roomids }}
+      ignore: ${{ inputs.ignore }}
     shell: bash
   - name: output logs
     run: cat log.log >>$GITHUB_STEP_SUMMARY

@@ -14,6 +14,10 @@ from bilibili_api import Credential,Danmaku,user
 from bilibili_api import sync,parse_link,select_client
 from bilibili_api.live import LiveRoom
 from bilibili_api.exceptions import ResponseCodeException,ApiException
+
+if not os.getcwd() in sys.path:
+    sys.path.append(os.getcwd())
+
 from danmu_dict import danmu_list
 
 level="WARNING"
@@ -78,7 +82,7 @@ def get_text():
     text=random.choice(danmu_list)
     try:
         if text is sended_danmu[-1] or text is None:
-            get_text()
+            return get_text()
         else:
             sended_danmu.append(text)
             return text
