@@ -32,8 +32,8 @@ jobs:
         - name: Build
           run: |
             pip install pyinstaller
-            pyinstaller -F --hidden-import=PIL._tkinter_finder --additional-hooks-dir=hooks reactivate.py
-            pyinstaller -F --hidden-import=PIL._tkinter_finder --additional-hooks-dir=hooks ./tools/get_cookie.py
+            pyinstaller -F --hidden-import=PIL._tkinter_finder --additional-hooks-dir=hooks --hidden-import aiohttp reactivate.py
+            pyinstaller -F --hidden-import=PIL._tkinter_finder --additional-hooks-dir=hooks --hidden-import aiohttp ./tools/get_cookie.py
         - name: Upload
           uses: actions/upload-artifact@v4
           with: 
