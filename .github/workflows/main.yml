@@ -31,6 +31,7 @@ jobs:
           run: pip install -r requirements.txt
         - name: Build
           run: |
+            pip install pyinstaller
             pyinstaller -F --hidden-import=PIL._tkinter_finder --additional-hooks-dir=hooks reactivate.py
             pyinstaller -F --hidden-import=PIL._tkinter_finder --additional-hooks-dir=hooks ./tools/get-cookie.py
         - name: Upload
