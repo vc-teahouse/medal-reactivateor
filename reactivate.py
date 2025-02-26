@@ -69,7 +69,7 @@ def login(): # get cookie from env
             ac_time_value=cookie.get('ac_time_value')
             )
         if sync(c.check_refresh()):
-            c.refresh()
+            sync(c.refresh())
             logger.info('Refresh cookie successfully!')
         else:
             logger.info('Cookie is still valid!')
