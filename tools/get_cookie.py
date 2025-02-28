@@ -1,9 +1,18 @@
 import os
+import sys
 import json
-from blapi_port.login_port import login_with_qrcode
+from blapi_port import login_port
+
+console_mode=False
+
+if "-console" in sys.argv:
+    console_mode=True
 
 def login():
-    c = login_with_qrcode()
+    if console_mode:
+        c=login_port.login_with_qrcode_term()
+    else:
+        c=login_port.login_with_qrcode()
     try:
         c.raise_for_no_sessdata()
         c.raise_for_no_bili_jct()
