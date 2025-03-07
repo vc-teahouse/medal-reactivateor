@@ -1,4 +1,4 @@
-git+https://github.com/nemo2011/bilibili-api.git@dev
+bilibili_api_python==17.1.1
 blapi_port==0.1.2
 loguru==0.7.3
 python-dotenv==1.0.1
