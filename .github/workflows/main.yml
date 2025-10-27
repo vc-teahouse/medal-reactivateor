@@ -35,7 +35,7 @@ jobs:
             pyinstaller -F --hidden-import=PIL._tkinter_finder --hidden-import=aiohttp --hidden-import=bilibili_api.clients.AioHTTPClient --additional-hooks-dir=hooks reactivate.py
             pyinstaller -F --hidden-import=PIL._tkinter_finder --hidden-import=aiohttp --hidden-import=bilibili_api.clients.AioHTTPClient  --additional-hooks-dir=hooks ./tools/get_cookie.py
         - name: Upload
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v5
           with: 
             name: build-${{matrix.os}}
             path: ./dist
